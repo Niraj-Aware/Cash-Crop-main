@@ -19,31 +19,46 @@ def preprocess_image(image):
     image = np.array(image) / 255.0  # Example normalization
     return image
 
-# Function to make prediction
+# Define function to make prediction on input image
 def predict(image):
-    processed_image = preprocess_image(image)
-    processed_image = np.expand_dims(processed_image, axis=0)
-    prediction = model.predict(processed_image)
-    return prediction
+    # Preprocess input image
+    image = preprocess_image(image)
+    # Make prediction using pre-trained model
+    prediction = model.predict(image)
+    # Convert prediction from probabilities to label
+    label = labels[np.argmax(prediction)]
+    # Return label and confidence score
+    return label, prediction[0][np.argmax(prediction)]
 
-# Streamlit app
+# Define Streamlit app
 def main():
-    st.title('Cotton Plant Health Prediction')
-
-    # File uploader
-    uploaded_file = st.file_uploader("Upload an image of a cotton plant", type=["jpg", "jpeg", "png"])
-
+    # Set app title
+    st.title('Cotton Plant Disease Detection')
+    # Set app description
+    st.write('This app helps you to detect whether a cotton plant is healthy or diseased.')
+    st.write('NOTE- This model only works on Cotton Plant. (With appropriate Image)')
+    # Add file uploader for input image
+    uploaded_file = st.file_uploader('Choose an image', type=['jpg', 'jpeg', 'png'])
+    # If file uploaded, display it and make prediction
     if uploaded_file is not None:
-        # Display uploaded image
+        # Load image
         image = Image.open(uploaded_file)
+        # Display image
         st.image(image, caption='Uploaded Image', use_column_width=True)
-
         # Make prediction
-        prediction = predict(image)
-        if prediction[0][0] > 0.5:  # Example threshold for classifying as healthy
-            st.write('Prediction: Healthy')
+        label, score = predict(image)
+        # Check if the predicted label is either 'healthy' or 'diseased'
+        if label in labels:
+            # Display prediction
+            st.write('Prediction: {} (confidence score: {:.2%})'.format(label, score))
+            # Provide instructions based on prediction
+            if label == 'diseased':
+                st.write('Your cotton plant appears to be diseased. To prevent the spread of disease, you should remove the infected plant and treat the soil. You can also consult a local agricultural expert for advice on how to prevent future outbreaks of disease.')
+            else:
+                st.write('Your cotton plant appears to be healthy. To keep it healthy, make sure to provide adequate water and fertilize regularly. You should also control pests and prune and train the plant to promote healthy growth. Harvest at the right time to ensure the highest quality fiber.')
         else:
-            st.write('Prediction: Diseased')
-
-if __name__ == "__main__":
+            st.write('The uploaded image is not appropriate for this app.')
+            
+# Run Streamlit app
+if __name__ == '__main__':
     main()
