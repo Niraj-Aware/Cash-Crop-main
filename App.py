@@ -15,7 +15,7 @@ model = load_model()
 def preprocess_image(image):
     # Preprocess the image here (resize, normalize, etc.)
     # Example: 
-    image = image.resize((224, 224))  # Example resize
+    image = image.resize((150, 150))  # Resize to match the input shape of the model
     image = np.array(image) / 255.0  # Example normalization
     return image
 
