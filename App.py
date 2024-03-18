@@ -9,7 +9,7 @@ import joblib
 # Load pre-trained model
 @st.cache(allow_output_mutation=True)
 def load_model():
-    return joblib.load('v3_pred_cott_dis.joblib')
+    return joblib.load('v3_pred_cott_dis.h5')
 
 model = load_model()
 
