@@ -4,11 +4,12 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import tensorflow as tf
+import joblib
 
 # Load pre-trained model
 @st.cache(allow_output_mutation=True)
 def load_model():
-    return tf.keras.models.load_model('v3_pred_cott_dis.h5')
+    return joblib.load('v3_pred_cott_dis.joblib')
 
 model = load_model()
 
