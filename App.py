@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image
 import numpy as np
+import cv2
 
 # Load pre-trained model
 @st.cache(allow_output_mutation=True)
@@ -11,21 +12,6 @@ def load_model():
 
 model = load_model()
 
-# Function to preprocess image
-def preprocess_image(image):
-    # Preprocess the image here (resize, normalize, etc.)
-    # Example: 
-    image = image.resize((224, 224))  # Example resize
-    image = np.array(image) / 255.0  # Example normalization
-    return image
-
-# Function to make prediction
-def predict(image):
-    processed_image = preprocess_image(image)
-    processed_image = np.expand_dims(processed_image, axis=0)
-    prediction = model.predict(processed_image)
-    return prediction
-
 # Define Streamlit app
 def main():
     # Set app title
@@ -34,22 +20,28 @@ def main():
     st.write('This app helps you to detect whether a cotton plant is healthy or diseased.')
     st.write('NOTE- This model only works on Cotton Plant. (With appropriate Image)')
     # Add file uploader for input image
-    uploaded_file = st.file_uploader('Choose an image', type=['jpg', 'jpeg', 'png'])
+    plant_image = st.file_uploader('Choose an image', type=['jpg', 'jpeg', 'png'])
     # If file uploaded, display it and make prediction
-    if uploaded_file is not None:
-        # Load image
-        image = Image.open(uploaded_file)
+    if plant_image is not None:
+        # Convert the file to an opencv image.
+        file_bytes = np.asarray(bytearray(plant_image.read()), dtype=np.uint8)
+        opencv_image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
         
-        # If image mode is not RGB, convert it to RGB
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        # Resize the image
+        opencv_image = cv2.resize(opencv_image, (256, 256))
         
-        # Display image
-        st.image(image, caption='Uploaded Image', use_column_width=True)
-        # Make prediction
-        prediction = predict(image)
-        # Display prediction
-        st.write('Prediction:', prediction)
+        # Convert BGR to RGB
+        opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB)
+        
+        # Displaying the image
+        st.image(opencv_image, channels="RGB", caption='Uploaded Image', use_column_width=True)
+        
+        # Make Prediction
+        prediction = model.predict(np.expand_dims(opencv_image, axis=0))
+        result = prediction[0]  # Assuming the model returns a single prediction
+        
+        # Display result
+        st.write('Prediction:', result)
 
 if __name__ == '__main__':
     main()
