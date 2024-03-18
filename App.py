@@ -1,60 +1,49 @@
 import streamlit as st
+import tensorflow as tf
 from PIL import Image
 import numpy as np
-import requests
-from io import BytesIO
-import tensorflow as tf
 
-# Function to preprocess input image
-def preprocess_image(image):
-    image = image.resize((150, 150))
-    image = np.array(image)
-    image = image / 255.0
-    image = np.expand_dims(image, axis=0)
-    return image
-
-# Function to load pre-trained model from GitHub
+# Load pre-trained model
 @st.cache(allow_output_mutation=True)
 def load_model():
-    model_url = 'https://github.com/Niraj-Aware/Cash-Crop-main/blob/main/v3_pred_cott_dis.h5'  # Replace with your GitHub URL
-    response = requests.get(model_url)
-    model = tf.keras.models.load_model(BytesIO(response.content))
+    model = tf.keras.models.load_model('path_to_your_model.h5')  # Change this to your model path
     return model
 
+model = load_model()
+
+# Function to preprocess image
+def preprocess_image(image):
+    # Preprocess the image here (resize, normalize, etc.)
+    # Example: 
+    image = image.resize((224, 224))  # Example resize
+    image = np.array(image) / 255.0  # Example normalization
+    return image
+
 # Function to make prediction
-def predict(image, model):
-    image = preprocess_image(image)
-    prediction = model.predict(image)
-    label = "diseased" if prediction[0][0] > 0.5 else "healthy"
-    confidence_score = prediction[0][0] if label == "diseased" else 1 - prediction[0][0]
-    return label, confidence_score
+def predict(image):
+    processed_image = preprocess_image(image)
+    processed_image = np.expand_dims(processed_image, axis=0)
+    prediction = model.predict(processed_image)
+    return prediction
 
 # Streamlit app
 def main():
-    st.title("Cotton Plant Disease Detection")
-    st.write("Upload an image of a cotton plant to check if it's healthy or diseased.")
+    st.title('Cotton Plant Health Prediction')
 
     # File uploader
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Upload an image of a cotton plant", type=["jpg", "jpeg", "png"])
 
     if uploaded_file is not None:
-        # Display the uploaded image
+        # Display uploaded image
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
-
-        # Load pre-trained model
-        model = load_model()
+        st.image(image, caption='Uploaded Image', use_column_width=True)
 
         # Make prediction
-        label, confidence_score = predict(image, model)
-
-        # Display prediction
-        st.write(f"Prediction: {label} (confidence score: {confidence_score:.2f})")
-        if label == "diseased":
-            st.write("Your cotton plant appears to be diseased.")
+        prediction = predict(image)
+        if prediction[0][0] > 0.5:  # Example threshold for classifying as healthy
+            st.write('Prediction: Healthy')
         else:
-            st.write("Your cotton plant appears to be healthy.")
+            st.write('Prediction: Diseased')
 
-# Run the app
 if __name__ == "__main__":
     main()
