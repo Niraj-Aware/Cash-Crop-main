@@ -2,3 +2,4 @@ numpy
 tensorflow
 streamlit
 image
+joblib
