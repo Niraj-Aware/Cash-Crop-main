@@ -16,7 +16,7 @@ def preprocess_image(image):
 # Function to load pre-trained model from GitHub
 @st.cache(allow_output_mutation=True)
 def load_model():
-    model_url = 'https://github.com/username/repo/raw/main/v3_pred_cott_dis.h5'  # Replace with your GitHub URL
+    model_url = 'https://github.com/Niraj-Aware/Cash-Crop-main/blob/main/v3_pred_cott_dis.h5'  # Replace with your GitHub URL
     response = requests.get(model_url)
     model = tf.keras.models.load_model(BytesIO(response.content))
     return model
